@@ -1,0 +1,21 @@
+PhantomSurface Scan Report
+=========================
+Target: scanme.nmap.org
+
+Web Technologies Detected:
+-------------------------
+URL: http://scanme.nmap.org
+Status Code: 200
+Server: Apache/2.4.7 (Ubuntu)
+X-Powered-By: Not Disclosed
+
+
+Identified Risks:
+----------------
+[HIGH] SSH exposed – Brute-force attack risk
+[MEDIUM] HTTP detected – Traffic not encrypted
+[LOW] Port 9929 exposed – Review service configuration
+[LOW] Port 31337 exposed – Review service configuration
+
+Overall Risk Score: 7/10
+Overall Risk Level: HIGH
