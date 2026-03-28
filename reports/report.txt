@@ -3,11 +3,9 @@ PhantomSurface Scan Report
 Target: scanme.org
 
 Subdomains:
-------------
 - www.scanme.org
 
 Web Info:
----------
 URL: http://scanme.org
 Status Code: 200
 Server: Apache/2.4.7 (Ubuntu)
@@ -15,7 +13,6 @@ X-Powered-By: Not Disclosed
 
 
 Risks:
-------
 [HIGH] SSH exposed – Brute-force attack risk
 [MEDIUM] HTTP detected – Traffic not encrypted
 [LOW] Port 9929 exposed – Review service configuration

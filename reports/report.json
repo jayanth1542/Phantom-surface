@@ -12,19 +12,19 @@
     "risks": [
         {
             "severity": "HIGH",
-            "description": "SSH exposed \u2013 Brute-force attack risk"
+            "desc": "SSH exposed \u2013 Brute-force attack risk"
         },
         {
             "severity": "MEDIUM",
-            "description": "HTTP detected \u2013 Traffic not encrypted"
+            "desc": "HTTP detected \u2013 Traffic not encrypted"
         },
         {
             "severity": "LOW",
-            "description": "Port 9929 exposed \u2013 Review service configuration"
+            "desc": "Port 9929 exposed \u2013 Review service configuration"
         },
         {
             "severity": "LOW",
-            "description": "Port 31337 exposed \u2013 Review service configuration"
+            "desc": "Port 31337 exposed \u2013 Review service configuration"
         }
     ],
     "score": 7,
