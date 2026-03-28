@@ -3,7 +3,10 @@
 import json
 import platform
 import argparse
-from colorama import Fore, Style, init
+import time
+from colorama import Fore, init
+from tqdm import tqdm
+
 from scanner.port_scan import scan_ports
 from scanner.service_scan import scan_services
 from analyzer.risk_analyzer import analyze_risks
@@ -39,22 +42,26 @@ def main():
     current_os = platform.system()
     print(Fore.GREEN + f"[+] Running on: {current_os}")
 
-    if current_os == "Windows":
-        print(Fore.YELLOW + "[!] Some tools may not work natively on Windows.")
-    elif current_os == "Darwin":
-        print(Fore.GREEN + "[+] macOS detected.")
-    elif current_os == "Linux":
-        print(Fore.GREEN + "[+] Linux detected. Recommended environment.")
-
     target = args.target
     print(Fore.CYAN + f"\n[+] Starting scan on {target}\n")
 
-    # 🔹 Subdomain Enumeration
-    subdomains = scan_subdomains(target)
+    # 🔹 Progress Steps
+    steps = [
+        ("Enumerating Subdomains", scan_subdomains),
+        ("Scanning Ports", scan_ports),
+        ("Detecting Services", scan_services),
+    ]
 
-    # 🔹 Port & Service Scanning
-    ports = scan_ports(target)
-    services = scan_services(target)
+    results = {}
+
+    for step_name, func in tqdm(steps, desc="Overall Progress", ncols=70):
+        print(Fore.YELLOW + f"\n[*] {step_name}...")
+        time.sleep(0.5)
+        results[step_name] = func(target)
+
+    subdomains = results["Enumerating Subdomains"]
+    ports = results["Scanning Ports"]
+    services = results["Detecting Services"]
 
     # 🔹 Risk Analysis
     risks, total_score = analyze_risks(ports)
@@ -69,7 +76,8 @@ def main():
     # 🔹 Web Scan
     web_result = None
     if "80" in ports or "443" in ports:
-        web_result = scan_web(target)
+        for _ in tqdm(range(1), desc="Web Scan", ncols=70):
+            web_result = scan_web(target)
 
     print(Fore.CYAN + "\n[+] Scan Complete")
     print("[+] Potential Risks Identified:")
@@ -84,7 +92,6 @@ def main():
 
         print(color + f" - [{severity}] {message}")
 
-    # 🔹 Final Score & Level
     print(Fore.CYAN + f"\n[+] Overall Risk Score: {total_score}/10")
 
     if overall_level == "HIGH":
@@ -94,6 +101,29 @@ def main():
     else:
         print(Fore.GREEN + f"[!] Overall Risk Level: {overall_level}")
 
+    # 🔹 Summary Dashboard
+    high_count = sum(1 for s, _ in risks if s == "HIGH")
+    medium_count = sum(1 for s, _ in risks if s == "MEDIUM")
+    low_count = sum(1 for s, _ in risks if s == "LOW")
+
+    print(Fore.CYAN + "\n========== SCAN SUMMARY ==========")
+    print(f"Target              : {target}")
+    print(f"Subdomains Found    : {len(subdomains)}")
+    print(f"Open Ports          : {len(ports)}")
+    print(Fore.RED + f"High Risks          : {high_count}")
+    print(Fore.YELLOW + f"Medium Risks        : {medium_count}")
+    print(Fore.GREEN + f"Low Risks           : {low_count}")
+    print(Fore.CYAN + f"Overall Score       : {total_score}/10")
+
+    if overall_level == "HIGH":
+        print(Fore.RED + f"Overall Risk Level  : {overall_level}")
+    elif overall_level == "MEDIUM":
+        print(Fore.YELLOW + f"Overall Risk Level  : {overall_level}")
+    else:
+        print(Fore.GREEN + f"Overall Risk Level  : {overall_level}")
+
+    print(Fore.CYAN + "=================================\n")
+
     # 🔹 TXT REPORT
     with open("reports/report.txt", "w") as f:
         f.write("PhantomSurface Scan Report\n")
@@ -101,37 +131,28 @@ def main():
         f.write(f"Target: {target}\n\n")
 
         f.write("Subdomains:\n")
-        f.write("------------\n")
-        if subdomains:
-            for sub in subdomains:
-                f.write(f"- {sub}\n")
-        else:
-            f.write("No subdomains found\n")
+        for sub in subdomains:
+            f.write(f"- {sub}\n")
 
         if web_result:
             f.write("\nWeb Info:\n")
-            f.write("---------\n")
             f.write(web_result + "\n")
 
         f.write("\nRisks:\n")
-        f.write("------\n")
-        for severity, message in risks:
-            f.write(f"[{severity}] {message}\n")
+        for s, m in risks:
+            f.write(f"[{s}] {m}\n")
 
         f.write(f"\nScore: {total_score}/10\n")
         f.write(f"Level: {overall_level}\n")
 
-    print(Fore.GREEN + "\n[+] TXT report saved")
+    print(Fore.GREEN + "[+] TXT report saved")
 
     # 🔹 JSON REPORT
     json_data = {
         "target": target,
         "subdomains": subdomains,
         "ports": ports,
-        "risks": [
-            {"severity": s, "description": m}
-            for s, m in risks
-        ],
+        "risks": [{"severity": s, "desc": m} for s, m in risks],
         "score": total_score,
         "level": overall_level
     }

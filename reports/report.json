@@ -3,7 +3,7 @@
     "subdomains": [
         "www.scanme.org"
     ],
-    "open_ports": [
+    "ports": [
         "22",
         "80",
         "9929",
@@ -27,6 +27,6 @@
             "description": "Port 31337 exposed \u2013 Review service configuration"
         }
     ],
-    "total_score": 7,
-    "overall_risk_level": "HIGH"
+    "score": 7,
+    "level": "HIGH"
 }
