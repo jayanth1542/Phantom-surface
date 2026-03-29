@@ -12,94 +12,113 @@ from scanner.subdomain_scan import scan_subdomains
 # 🔹 Page Config
 st.set_page_config(page_title="PhantomSurface", layout="wide")
 
-# 🔹 Dark Theme Styling
-st.markdown(
-    """
-    <style>
-    body {
-        background-color: #0e1117;
-        color: #00ffcc;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
+# 🔹 Custom Hacker Theme
+st.markdown("""
+<style>
+html, body, [class*="css"] {
+    background-color: #0d1117;
+    color: #00ffcc;
+}
 
-# 🔹 Title
-st.title("🛡️ PhantomSurface Attack Surface Mapper")
+.stTextInput>div>div>input {
+    background-color: #161b22;
+    color: #00ffcc;
+}
 
-# 🔹 Input
-target = st.text_input("Enter Target Domain/IP", "scanme.nmap.org")
+.stButton>button {
+    background-color: #00ffcc;
+    color: black;
+    border-radius: 8px;
+    font-weight: bold;
+}
 
-# 🔹 Start Button
-if st.button("Start Scan"):
+.block-container {
+    padding-top: 2rem;
+}
 
-    st.info(f"Scanning {target}...")
+h1, h2, h3 {
+    color: #00ffcc;
+}
+</style>
+""", unsafe_allow_html=True)
+
+# 🔹 Sidebar
+st.sidebar.title("⚡ PhantomSurface")
+st.sidebar.markdown("Attack Surface Mapper")
+target = st.sidebar.text_input("🎯 Target", "scanme.nmap.org")
+
+start = st.sidebar.button("🚀 Start Scan")
+
+# 🔹 Main Title
+st.title("🛡️ PhantomSurface Dashboard")
+
+if start:
+    st.info(f"Scanning {target}...\n")
+
+    col1, col2 = st.columns(2)
 
     # 🔹 Subdomains
-    with st.spinner("Enumerating Subdomains..."):
+    with st.spinner("🌐 Enumerating Subdomains..."):
         subs = scan_subdomains(target)
 
-    st.subheader("🌐 Subdomains")
-    if subs:
-        st.write(subs)
-    else:
-        st.write("No subdomains found")
+    with col1:
+        st.subheader("🌐 Subdomains")
+        st.write(subs if subs else "None found")
 
     # 🔹 Ports
-    with st.spinner("Scanning Ports..."):
+    with st.spinner("🔓 Scanning Ports..."):
         ports = scan_ports(target)
 
-    st.subheader("🔓 Open Ports")
-    st.write(ports)
+    with col2:
+        st.subheader("🔓 Open Ports")
+        st.write(ports)
 
     # 🔹 Services
-    with st.spinner("Detecting Services..."):
+    with st.spinner("⚙️ Detecting Services..."):
         services = scan_services(target)
 
-    st.subheader("⚙️ Services Detected")
-    st.success("Service scan completed")
+    st.success("⚙️ Service scan completed")
 
     # 🔹 Risks
     risks, score = analyze_risks(ports)
 
-    st.subheader("⚠️ Risks")
+    st.subheader("⚠️ Risk Analysis")
+
     for sev, msg in risks:
         if sev == "HIGH":
-            st.error(msg)
+            st.error(f"[HIGH] {msg}")
         elif sev == "MEDIUM":
-            st.warning(msg)
+            st.warning(f"[MEDIUM] {msg}")
         else:
-            st.success(msg)
+            st.success(f"[LOW] {msg}")
 
     # 🔹 Web Scan
     if "80" in ports or "443" in ports:
-        with st.spinner("Scanning Web Technologies..."):
+        with st.spinner("🌍 Scanning Web..."):
             web = scan_web(target)
         if web:
             st.subheader("🌍 Web Info")
-            st.text(web)
+            st.code(web)
 
     # 🔹 Risk Level
     if score >= 6:
         level = "HIGH"
-        st.error(f"Risk Level: {level}")
+        st.error(f"🔥 Risk Level: {level}")
     elif score >= 3:
         level = "MEDIUM"
-        st.warning(f"Risk Level: {level}")
+        st.warning(f"⚠️ Risk Level: {level}")
     else:
         level = "LOW"
-        st.success(f"Risk Level: {level}")
+        st.success(f"✅ Risk Level: {level}")
 
-    # 🔹 Metrics Dashboard
-    st.subheader("📊 Summary")
+    # 🔹 Metrics Row
+    st.subheader("📊 Dashboard Metrics")
+    m1, m2, m3 = st.columns(3)
+    m1.metric("Risk Score", f"{score}/10")
+    m2.metric("Subdomains", len(subs))
+    m3.metric("Open Ports", len(ports))
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("Risk Score", f"{score}/10")
-    col2.metric("Subdomains", len(subs))
-    col3.metric("Open Ports", len(ports))
-
-    # 🔹 Risk Distribution Chart
+    # 🔹 Risk Chart
     risk_counts = {
         "HIGH": sum(1 for s, _ in risks if s == "HIGH"),
         "MEDIUM": sum(1 for s, _ in risks if s == "MEDIUM"),
@@ -115,18 +134,17 @@ if st.button("Start Scan"):
     st.bar_chart(df.set_index("Severity"))
 
     # 🔹 Download Report
-    report_data = {
+    report = {
         "target": target,
         "subdomains": subs,
         "ports": ports,
-        "risks": [{"severity": s, "description": m} for s, m in risks],
+        "risks": [{"severity": s, "desc": m} for s, m in risks],
         "score": score,
         "level": level
     }
 
     st.download_button(
-        label="📥 Download Report (JSON)",
-        data=json.dumps(report_data, indent=4),
-        file_name="phantomsurface_report.json",
-        mime="application/json"
+        "📥 Download Report",
+        json.dumps(report, indent=4),
+        file_name="phantomsurface_report.json"
     )
