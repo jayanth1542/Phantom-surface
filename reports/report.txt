@@ -1,12 +1,11 @@
 PhantomSurface Scan Report
 =========================
-Target: scanme.org
+Target: scanme.nmap.org
 
 Subdomains:
-- www.scanme.org
 
 Web Info:
-URL: http://scanme.org
+URL: http://scanme.nmap.org
 Status Code: 200
 Server: Apache/2.4.7 (Ubuntu)
 X-Powered-By: Not Disclosed

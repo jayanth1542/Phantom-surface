@@ -1,8 +1,6 @@
 {
-    "target": "scanme.org",
-    "subdomains": [
-        "www.scanme.org"
-    ],
+    "target": "scanme.nmap.org",
+    "subdomains": [],
     "ports": [
         "22",
         "80",

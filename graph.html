@@ -34,7 +34,7 @@
              #mynetwork {
                  width: 100%;
                  height: 500px;
-                 background-color: #0e1117;
+                 background-color: #ffffff;
                  border: 1px solid lightgray;
                  position: relative;
                  float: left;
@@ -88,8 +88,8 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"color": "orange", "font": {"color": "white"}, "id": "zero.webappsecurity.com", "label": "zero.webappsecurity.com", "shape": "dot"}, {"color": "cyan", "font": {"color": "white"}, "id": "zero.webappsecurity.com:80", "label": "Port 80", "shape": "dot"}, {"color": "cyan", "font": {"color": "white"}, "id": "zero.webappsecurity.com:443", "label": "Port 443", "shape": "dot"}, {"color": "cyan", "font": {"color": "white"}, "id": "zero.webappsecurity.com:8080", "label": "Port 8080", "shape": "dot"}]);
-                  edges = new vis.DataSet([{"from": "zero.webappsecurity.com", "to": "zero.webappsecurity.com"}, {"from": "zero.webappsecurity.com", "to": "zero.webappsecurity.com:80"}, {"from": "zero.webappsecurity.com", "to": "zero.webappsecurity.com:443"}, {"from": "zero.webappsecurity.com", "to": "zero.webappsecurity.com:8080"}]);
+                  nodes = new vis.DataSet([{"color": "blue", "id": "scam.nmap.org", "label": "scam.nmap.org", "shape": "dot"}, {"color": "green", "id": "apache", "label": "apache", "shape": "dot"}, {"color": "orange", "id": "port 22", "label": "port 22", "shape": "dot"}, {"color": "orange", "id": "port 25", "label": "port 25", "shape": "dot"}, {"color": "orange", "id": "port 80", "label": "port 80", "shape": "dot"}, {"color": "orange", "id": "port 443", "label": "port 443", "shape": "dot"}]);
+                  edges = new vis.DataSet([{"from": "scam.nmap.org", "to": "apache"}, {"from": "scam.nmap.org", "to": "port 22"}, {"from": "scam.nmap.org", "to": "port 25"}, {"from": "scam.nmap.org", "to": "port 80"}, {"from": "scam.nmap.org", "to": "port 443"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });
