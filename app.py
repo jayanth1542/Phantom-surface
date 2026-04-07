@@ -1,150 +1,154 @@
 import streamlit as st
-import json
-import pandas as pd
+from fpdf import FPDF
+from cve_engine import get_cves_for_technologies, calculate_risk_from_cves
 
-from scanner.port_scan import scan_ports
-from scanner.service_scan import scan_services
-from analyzer.risk_analyzer import analyze_risks
-from scanner.web_scan import scan_web
-from scanner.subdomain_scan import scan_subdomains
-
-
-# 🔹 Page Config
 st.set_page_config(page_title="PhantomSurface", layout="wide")
 
-# 🔹 Custom Hacker Theme
-st.markdown("""
-<style>
-html, body, [class*="css"] {
-    background-color: #0d1117;
-    color: #00ffcc;
-}
+st.title("🛡️ PhantomSurface - Attack Surface Scanner")
 
-.stTextInput>div>div>input {
-    background-color: #161b22;
-    color: #00ffcc;
-}
+# -------------------------------
+# USER INPUT
+# -------------------------------
+domain = st.text_input("🌐 Enter Domain (e.g. example.com)")
 
-.stButton>button {
-    background-color: #00ffcc;
-    color: black;
-    border-radius: 8px;
-    font-weight: bold;
-}
+# -------------------------------
+# SESSION STATE INIT
+# -------------------------------
+if "results" not in st.session_state:
+    st.session_state["results"] = {}
 
-.block-container {
-    padding-top: 2rem;
-}
+if "cve_results" not in st.session_state:
+    st.session_state["cve_results"] = {}
 
-h1, h2, h3 {
-    color: #00ffcc;
-}
-</style>
-""", unsafe_allow_html=True)
+if "risk_level" not in st.session_state:
+    st.session_state["risk_level"] = "UNKNOWN"
 
-# 🔹 Sidebar
-st.sidebar.title("⚡ PhantomSurface")
-st.sidebar.markdown("Attack Surface Mapper")
-target = st.sidebar.text_input("🎯 Target", "scanme.nmap.org")
+# -------------------------------
+# RUN SCAN BUTTON
+# -------------------------------
+if st.button("🚀 Run Scan"):
 
-start = st.sidebar.button("🚀 Start Scan")
-
-# 🔹 Main Title
-st.title("🛡️ PhantomSurface Dashboard")
-
-if start:
-    st.info(f"Scanning {target}...\n")
-
-    col1, col2 = st.columns(2)
-
-    # 🔹 Subdomains
-    with st.spinner("🌐 Enumerating Subdomains..."):
-        subs = scan_subdomains(target)
-
-    with col1:
-        st.subheader("🌐 Subdomains")
-        st.write(subs if subs else "None found")
-
-    # 🔹 Ports
-    with st.spinner("🔓 Scanning Ports..."):
-        ports = scan_ports(target)
-
-    with col2:
-        st.subheader("🔓 Open Ports")
-        st.write(ports)
-
-    # 🔹 Services
-    with st.spinner("⚙️ Detecting Services..."):
-        services = scan_services(target)
-
-    st.success("⚙️ Service scan completed")
-
-    # 🔹 Risks
-    risks, score = analyze_risks(ports)
-
-    st.subheader("⚠️ Risk Analysis")
-
-    for sev, msg in risks:
-        if sev == "HIGH":
-            st.error(f"[HIGH] {msg}")
-        elif sev == "MEDIUM":
-            st.warning(f"[MEDIUM] {msg}")
-        else:
-            st.success(f"[LOW] {msg}")
-
-    # 🔹 Web Scan
-    if "80" in ports or "443" in ports:
-        with st.spinner("🌍 Scanning Web..."):
-            web = scan_web(target)
-        if web:
-            st.subheader("🌍 Web Info")
-            st.code(web)
-
-    # 🔹 Risk Level
-    if score >= 6:
-        level = "HIGH"
-        st.error(f"🔥 Risk Level: {level}")
-    elif score >= 3:
-        level = "MEDIUM"
-        st.warning(f"⚠️ Risk Level: {level}")
+    if not domain:
+        st.warning("Please enter a domain")
     else:
-        level = "LOW"
-        st.success(f"✅ Risk Level: {level}")
+        # 🔥 Replace with your real scanner later
+        results = {
+            "domain": domain,
+            "technologies": ["nginx", "php"],  # simulated detection
+            "ports": [80, 443]
+        }
 
-    # 🔹 Metrics Row
-    st.subheader("📊 Dashboard Metrics")
-    m1, m2, m3 = st.columns(3)
-    m1.metric("Risk Score", f"{score}/10")
-    m2.metric("Subdomains", len(subs))
-    m3.metric("Open Ports", len(ports))
+        st.session_state["results"] = results
+        st.success("Scan completed!")
 
-    # 🔹 Risk Chart
-    risk_counts = {
-        "HIGH": sum(1 for s, _ in risks if s == "HIGH"),
-        "MEDIUM": sum(1 for s, _ in risks if s == "MEDIUM"),
-        "LOW": sum(1 for s, _ in risks if s == "LOW")
-    }
+# -------------------------------
+# SHOW RESULTS
+# -------------------------------
+results = st.session_state.get("results", {})
 
-    df = pd.DataFrame({
-        "Severity": list(risk_counts.keys()),
-        "Count": list(risk_counts.values())
-    })
+if results:
+    st.subheader("📊 Scan Results")
 
-    st.subheader("📊 Risk Distribution")
-    st.bar_chart(df.set_index("Severity"))
+    st.write("**Domain:**", results.get("domain"))
+    st.write("**Technologies:**", ", ".join(results.get("technologies", [])))
+    st.write("**Open Ports:**", results.get("ports"))
 
-    # 🔹 Download Report
-    report = {
-        "target": target,
-        "subdomains": subs,
-        "ports": ports,
-        "risks": [{"severity": s, "desc": m} for s, m in risks],
-        "score": score,
-        "level": level
-    }
+# -------------------------------
+# CVE FETCH BUTTON
+# -------------------------------
+if results and "technologies" in results:
 
-    st.download_button(
-        "📥 Download Report",
-        json.dumps(report, indent=4),
-        file_name="phantomsurface_report.json"
-    )
+    if st.button("🛡️ Fetch Live CVEs"):
+
+        with st.spinner("Fetching vulnerabilities from NVD..."):
+            tech_list = results.get("technologies", [])
+            cve_results = get_cves_for_technologies(tech_list)
+
+        st.session_state["cve_results"] = cve_results
+
+        st.subheader("🛡️ Live Vulnerabilities (NVD)")
+
+        for tech, cves in cve_results.items():
+            st.markdown(f"### 🔍 {tech}")
+
+            if not cves:
+                st.write("No CVEs found")
+                continue
+
+            for cve in cves:
+                if "error" in cve:
+                    st.error(cve["error"])
+                    continue
+
+                icon = {
+                    "LOW": "🟢",
+                    "MEDIUM": "🟡",
+                    "HIGH": "🟠",
+                    "CRITICAL": "🔴"
+                }.get(cve["severity"], "⚪")
+
+                st.write(f"{icon} **{cve['id']}**")
+                st.write(cve["description"])
+                st.write("---")
+
+        # -------------------------------
+        # RISK CALCULATION
+        # -------------------------------
+        risk = calculate_risk_from_cves(cve_results)
+        st.session_state["risk_level"] = risk
+
+        st.subheader("🚨 Updated Risk Level")
+        st.write(f"### {risk}")
+
+# -------------------------------
+# PDF GENERATION FUNCTION
+# -------------------------------
+def generate_pdf(results, cve_results, risk):
+    pdf = FPDF()
+    pdf.add_page()
+
+    pdf.set_font("Arial", size=12)
+
+    pdf.cell(0, 10, "PhantomSurface Report", ln=True)
+    pdf.ln(5)
+
+    pdf.cell(0, 10, f"Domain: {results.get('domain')}", ln=True)
+    pdf.cell(0, 10, f"Risk Level: {risk}", ln=True)
+
+    pdf.ln(5)
+    pdf.cell(0, 10, "Technologies:", ln=True)
+
+    for tech in results.get("technologies", []):
+        pdf.cell(0, 10, f"- {tech}", ln=True)
+
+    pdf.ln(5)
+    pdf.cell(0, 10, "Live CVE Findings:", ln=True)
+
+    for tech, cves in cve_results.items():
+        pdf.cell(0, 10, f"{tech}:", ln=True)
+
+        for cve in cves[:3]:
+            line = f"{cve['id']} ({cve['severity']})"
+            pdf.multi_cell(0, 8, line)
+
+    return pdf.output(dest="S").encode("latin-1")
+
+# -------------------------------
+# DOWNLOAD PDF BUTTON
+# -------------------------------
+if st.session_state.get("cve_results"):
+
+    if st.button("📄 Generate PDF Report"):
+
+        pdf_data = generate_pdf(
+            st.session_state["results"],
+            st.session_state["cve_results"],
+            st.session_state["risk_level"]
+        )
+
+        st.download_button(
+            label="⬇️ Download Report",
+            data=pdf_data,
+            file_name="phantomsurface_report.pdf",
+            mime="application/pdf"
+        )
