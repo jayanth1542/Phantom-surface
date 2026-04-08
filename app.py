@@ -146,6 +146,9 @@ with tab2:
 # -------------------------------
 # TAB 3: REPORT
 # -------------------------------
+# -------------------------------
+# TAB 3: REPORT
+# -------------------------------
 with tab3:
     if "results" in st.session_state and "cves" in st.session_state:
 
@@ -158,27 +161,67 @@ with tab3:
             pdf.add_page()
             pdf.set_font("Arial", size=12)
 
+            # Title
+            pdf.set_font("Arial", "B", 16)
             pdf.cell(0, 10, "PhantomSurface Report", ln=True)
+
+            pdf.ln(5)
+            pdf.set_font("Arial", size=12)
+
+            # Basic Info
             pdf.cell(0, 10, f"Domain: {r['domain']}", ln=True)
             pdf.cell(0, 10, f"Risk: {risk}", ln=True)
 
+            # Technologies
             pdf.ln(5)
             pdf.cell(0, 10, "Technologies:", ln=True)
-            for t in r["technologies"]:
-                pdf.cell(0, 10, f"- {t}", ln=True)
 
+            if r["technologies"]:
+                for t in r["technologies"]:
+                    pdf.cell(0, 10, f"- {t}", ln=True)
+            else:
+                pdf.cell(0, 10, "None", ln=True)
+
+            # Exposures
             pdf.ln(5)
             pdf.cell(0, 10, "Exposures:", ln=True)
-            for exp in r["exposures"]:
-                pdf.cell(0, 10, f"{exp['path']} ({exp['status']})", ln=True)
 
+            if r["exposures"]:
+                for exp in r["exposures"]:
+                    pdf.cell(0, 10, f"{exp['path']} ({exp['status']})", ln=True)
+            else:
+                pdf.cell(0, 10, "None", ln=True)
+
+            # CVEs (🔥 upgrade)
+            pdf.ln(5)
+            pdf.cell(0, 10, "CVEs:", ln=True)
+
+            cves = st.session_state.get("cves", {})
+            if cves:
+                for tech, items in cves.items():
+                    pdf.cell(0, 10, f"{tech}:", ln=True)
+                    for cve in items[:3]:  # limit to avoid overflow
+                        if "id" in cve:
+                            pdf.cell(0, 10, f"- {cve['id']} ({cve['severity']})", ln=True)
+            else:
+                pdf.cell(0, 10, "No CVEs fetched", ln=True)
+
+            # Save
             pdf.output("report.pdf")
 
-            st.success("Report Generated")
+            # ✅ IMPORTANT: Download button
+            with open("report.pdf", "rb") as f:
+                st.download_button(
+                    label="⬇️ Download Report",
+                    data=f,
+                    file_name="PhantomSurface_Report.pdf",
+                    mime="application/pdf"
+                )
+
+            st.success("Report Generated & Ready to Download")
 
     else:
         st.info("Run scan + CVE first")
-
 # -------------------------------
 # TAB 4: DASHBOARD
 # -------------------------------

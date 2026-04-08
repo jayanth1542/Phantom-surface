@@ -88,8 +88,8 @@
                   
 
                   // parsing and collecting nodes and edges from the python
-                  nodes = new vis.DataSet([{"color": "blue", "id": "scam.nmap.org", "label": "scam.nmap.org", "shape": "dot"}, {"color": "green", "id": "apache", "label": "apache", "shape": "dot"}, {"color": "orange", "id": "port 22", "label": "port 22", "shape": "dot"}, {"color": "orange", "id": "port 25", "label": "port 25", "shape": "dot"}, {"color": "orange", "id": "port 80", "label": "port 80", "shape": "dot"}, {"color": "orange", "id": "port 443", "label": "port 443", "shape": "dot"}]);
-                  edges = new vis.DataSet([{"from": "scam.nmap.org", "to": "apache"}, {"from": "scam.nmap.org", "to": "port 22"}, {"from": "scam.nmap.org", "to": "port 25"}, {"from": "scam.nmap.org", "to": "port 80"}, {"from": "scam.nmap.org", "to": "port 443"}]);
+                  nodes = new vis.DataSet([{"color": "blue", "id": "scam.nmap.org", "label": "scam.nmap.org", "shape": "dot"}, {"color": "green", "id": "apache", "label": "apache", "shape": "dot"}, {"color": "orange", "id": "port 22", "label": "port 22", "shape": "dot"}, {"color": "orange", "id": "port 80", "label": "port 80", "shape": "dot"}, {"color": "orange", "id": "port 443", "label": "port 443", "shape": "dot"}]);
+                  edges = new vis.DataSet([{"from": "scam.nmap.org", "to": "apache"}, {"from": "scam.nmap.org", "to": "port 22"}, {"from": "scam.nmap.org", "to": "port 80"}, {"from": "scam.nmap.org", "to": "port 443"}]);
 
                   nodeColors = {};
                   allNodes = nodes.get({ returnType: "Object" });
